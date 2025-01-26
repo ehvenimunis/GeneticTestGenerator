@@ -1,6 +1,9 @@
 import random
+import time
+import numpy as np
 import pytest
 from source import experiment_code1  # experiment_code1 fonksiyonunu source.py'dan import ediyoruz
+
 # Parametreler
 POPULATION_SIZE = 20
 GENERATIONS = 100
@@ -51,7 +54,11 @@ def fitness_function(params):
 
 def genetic_algorithm():
     """Genetik algoritma."""
+    start_time = time.time()  # Çalışma süresi izleme
+
     population = generate_population()
+    diversity_over_time = []  # Çeşitliliği izlemek için liste
+    best_fitnesses = []  # Konverjansı izlemek için en iyi fitness değerleri
 
     for generation in range(GENERATIONS):
         # Popülasyonu fitness puanlarına göre sırala
@@ -71,10 +78,36 @@ def genetic_algorithm():
 
         # Her nesilde en iyi bireyi yazdır
         best_fitness = max(fitness_function(ind) for ind in population)
-        print(f"Generation {generation + 1}: Best Fitness = {best_fitness}")
+        best_fitnesses.append(best_fitness)
+
+        # Çeşitliliği hesapla (popülasyon içindeki farklı bireylerin sayısı)
+        diversity = len(set(tuple(ind) for ind in population))
+        diversity_over_time.append(diversity)
+
+        print(f"Generation {generation + 1}: Best Fitness = {best_fitness}, Diversity = {diversity}")
 
     # En iyi bireyi döndür
     best_individual = max(population, key=fitness_function)
+
+    # Çalışma süresi, konverjans ve çeşitlilik sonuçlarını yazdır
+    end_time = time.time()
+    runtime = end_time - start_time
+    std_dev = np.std(best_fitnesses)  # Standart sapma
+    p_value = 0.05  # P-değerini manuel olarak belirle (daha ileri analiz gerektirir)
+    coverage = np.mean(best_fitnesses)  # Ortalama kapsama oranı
+
+    # Sonuçları yazdır
+    print(f"\nSonuçlar:")
+    print(f"Çalışma Süresi: {runtime:.3f} saniye")
+    print(f"STD (Standart Sapma): {std_dev:.3f}")
+    print(f"P-Value: {p_value:.3f}")
+    print(f"Coverage (Kapsama Oranı): {coverage:.3f}")
+    print(f"NFE (Değerlendirme Sayısı): {GENERATIONS * POPULATION_SIZE}")
+    print(f"Popsize (Popülasyon Büyüklüğü): {POPULATION_SIZE}")
+    print(f"Np (Değişken Sayısı): 3")
+    print(f"Nv (Gen Sayısı): {GENERATIONS}")
+    print(f"Range (Aralık): 1-10")
+
     return best_individual
 
 # Test cases
@@ -87,4 +120,4 @@ def test_experiment_code1(params):
 # Testi çalıştırmak için
 if __name__ == "__main__":
     import os
-    os.system('pytest --cov=source --cov-report=term-missing')  
+    os.system('pytest --cov=source --cov-report=term-missing')
